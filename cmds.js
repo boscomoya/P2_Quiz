@@ -128,52 +128,51 @@ exports.playCmd = rl => {
 
 
     let score = 0;
+
     let toBeResolved = [];
-    const quizzes = model.getAll();
-    //log(quizzes);
     for (var i = 0; i < model.count(); i++) {
-        toBeResolved.push(i);
+        toBeResolved[i] = i;
     }
 
-    const playOne = () =>{
+    const playOne = () => {
 
+        if (toBeResolved.length === 0) {
 
-    if (toBeResolved.length === 0){
-        log("no hay nada que preguntar","red");
+            log("No hay nada más que preguntar");
+            log(`Fin del juego. Aciertos: ${score}`);
+            biglog(`${score}`, 'magenta');
+            rl.prompt();
+        } else {
+            try{
+                let id = Math.floor(Math.random() * toBeResolved.length); 	// Uso floor ya que la longitud del array es una ud. mayor que el mayor ínice.
+                const quiz = model.getByIndex(toBeResolved[id]);
+                toBeResolved.splice(id,1);
 
-        rl.prompt();
-    }else{
-       try{
-        let d = Math.floor(Math.random()*toBeResolved.length);
-               const quiz = model.getByIndex[d];
-               rl.question("¿"+quiz.question+"? ",answer => {
-                   toBeResolved.splice(d,1);
-                   if( answer.toLowerCase().trim() === quiz.answer.toLowerCase().trim()){
-                       score ++;
-                       log(` CORRECTO - Lleva ${score} aciertos `, 'green');
+                rl.question(colorize(`${quiz.question}? `, 'red'), respuesta => {
 
+                    if (respuesta.trim().toLowerCase() === quiz.answer.toLowerCase()) {
+                    score = score + 1;
+                    log(`CORRECTO - Lleva ${score} aciertos.`);
+                    playOne();
 
-                   playOne();
-               }else{
-                   log("Su respuesta es incorrecta ","red");
-                   biglog('Incorrecto','red');
+                } else {
+                    log("INCORRECTO");
+                    log(`Fin del juego. Aciertos: ${score}`);
+                    biglog(`${score}`, 'magenta');
+                    rl.prompt();
+                }
+            });
 
-                   rl.prompt();
-               }
-
-
-
-           });
-
-           }catch (error) {
-           errorlog(error.message);
-           rl.prompt();
+            } catch(error) {
+                errorlog(error.message);
+                rl.prompt();
+            }
         }
-        }
-};
+    }
 
     playOne();
 };
+
 exports.creditsCmd = rl =>{
     console.log("Autor de la práctica: ");
     log(" PABLO Bosco Moya Rodriguez","blue");
