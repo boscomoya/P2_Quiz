@@ -165,91 +165,102 @@ exports.editCmd = (rl ,id) => {
 };
 
 exports.testCmd = (rl,id) => {
-    if (typeof id === "undefined"){
-        errorlog(`Falta el parametro id.`);
-    }else{
-        try{
-            const quiz = model.getByIndex(id);
-            rl.question("¿"+quiz.question+"? ",answer => {
-           if( answer.toLowerCase().trim() === quiz.answer.toLowerCase().trim()){
-               log("Su respuesta es correcta ","green");
-               biglog('Correcto','green');
-            }else{
-                log("Su respuesta es incorrecta ","red");
-                biglog('Incorrecto','red');
-            }
-
-            rl.prompt();
-
-        });
-
-        }catch (error){
-            errorlog(error.message);
-            rl.prompt();
-        }
+    validateId(id)
+        .then(id => models.quiz.findById(id))
+.then(quiz => {
+        if (!quiz){
+        throw new Error(`Ǹo existe un quiz asociado al id=${id}.`);
     }
+
+    log(`[${colorize(quiz.id,'magenta')}]: ${quiz.question}: `);
+    return makeQuestion(rl, ' Introduzca la respuesta: ')
+        .then(r => {
+
+        if(quiz.answer.toUpperCase().trim() === r.toUpperCase().trim()){
+
+        log("Su respuesta es correcta");
+
+        biglog('Correcta', 'green');
+
+    } else{
+
+        log("Su respuesta es incorrecta");
+
+        biglog('Incorrecta', 'red');
+
+    }
+
+});
+})
+.catch(Sequelize.ValidationError, error => {
+        errorlog('El quiz es erróneo:');
+    error.errors.forEach(({message}) => errorlog(message));
+})
+.catch(error => {
+        errorlog(error.message);
+})
+.then(() => {
+        rl.prompt();
+});
 };
 exports.playCmd = rl => {
 
-    const generar = () => {
-        let d = Math.round(Math.random()*toBeResolved.length);
-    }
+
+
 
     let score = 0;
     let toBeResolved = [];
-    for ( let i = 0; i < 4 ;++i){
-       toBeResolved.push(i);
+    model.quiz.findAll({raw: true})
+        .then(quizzes => {
+            toBeResolved = quizzes;
+})
 
-    };
+
     const playOne = () =>{
 
 
-    if (toBeResolved.length === 0){
-        log("no hay nada que preguntar","red");
+        return new Sequelize.Promise((resolve,reject) => {
+            if(toBeResolved.length <=0){
+            console.log("No hay nada más que preguntar.");
+            console.log("Fin del examen. Aciertos:");
+            resolve();
+            biglog(score, 'magenta');
+            return;
+        }
+        let id = Math.floor(Math.random()*toBeResolved.length);
+        let quiz = toBeResolved[id];
+        toBeResolved.splice(id,1);
+        makeQuestion(rl, colorize(quiz.question + '? ', 'red'))
+            .then(response => {
+            if(response.toLowerCase().trim() === quiz.answer.toLowerCase().trim()){
+            score++;
+            console.log("CORRECTO - Lleva ",score, "aciertos");
+            resolve(playOne());
+        } else {
+            console.log("INCORRECTO.");
+            console.log("Fin del examen. Aciertos:");
+            resolve();
+            biglog(score, 'magenta');
+        }
+    })
+    })
+    }
 
+    models.quiz.findAll({raw: true})
+        .then(quizzes => {
+        toBeResolved = quizzes;
+})
+.then(() => {
+        return playOne();
+})
+.catch(error => {
+        console.log(error);
+})
+.then(() => {
         rl.prompt();
-    }else{
-
-        let m = 0;
-        let d = Math.round(Math.random()*toBeResolved.length);
-        for ( let i = 0; i < toBeResolved.length + 1 ;++i) {
-            if (toBeResolved[i] === d) {
-                let quiz = model.getByIndex(d);
-                toBeResolved = toBeResolved.filter(elem => elem != d);
-
-
-                rl.question("¿" + quiz.question + "? ", answer => {
-                    if(answer.toLowerCase().trim() === quiz.answer.toLowerCase().trim()
-            )
-                {
-                    log("Su respuesta es correcta ", "green");
-                    log('Correcto', 'green');
-                    score = score + 1;
-                    console.log(`"su puntuacion es de :"${score}`);
-                    playOne();
-                }
-            else
-                {
-                    log("Su respuesta es incorrecta ", "red");
-                    console.log(`"su puntuacion es de :"${score}`);
-                    rl.prompt();
-                }
-
-
-            });
-
-            } else {
-             m = m +1;
-             if(m > toBeResolved.length){
-                 generar;
-             }
-
-            };
-        };
+})
 };
-    };
-    playOne();
-} ;
+
 exports.creditsCmd = rl =>{
     console.log("Autor de la práctica: ");
     log(" PABLO Bosco Moya Rodriguez","blue");
