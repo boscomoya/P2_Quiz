@@ -131,11 +131,9 @@ exports.playCmd = rl => {
     let toBeResolved = [];
     const quizzes = model.getAll();
     //log(quizzes);
-    for (var i = 0; i < quizzes.length; i++){
-        toBeResolve.push(quizzes[i]);
-        //log(toBeResolve);
+    for (var i = 0; i < model.count(); i++) {
+        toBeResolved.push(i);
     }
-
 
     const playOne = () =>{
 
@@ -147,14 +145,14 @@ exports.playCmd = rl => {
     }else{
        try{
         let d = Math.floor(Math.random()*toBeResolved.length);
-               const quiz = model.getByIndex(d);
+               const quiz = model.getByIndex[d];
                rl.question("¿"+quiz.question+"? ",answer => {
-                   if( answer.toLowerCase().trim() === quiz.answer.toLowerCase().trim()){
-                   log("Su respuesta es correcta ","green");
-                   biglog('Correcto','green');
-
-                   score ++;
                    toBeResolved.splice(d,1);
+                   if( answer.toLowerCase().trim() === quiz.answer.toLowerCase().trim()){
+                       score ++;
+                       score ++;log(` CORRECTO - Lleva ${score} aciertos `, 'green');
+
+
                    playOne();
                }else{
                    log("Su respuesta es incorrecta ","red");
