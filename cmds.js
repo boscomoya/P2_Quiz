@@ -18,9 +18,12 @@ exports.helpCmd = rl => {
 
 };
 exports.listCmd = rl => {
+
     model.getAll().forEach((quiz, id) => {
-        log(` [${colorize(id, 'magenta')}]:${quiz.question}`);
-    });
+
+        log(` [${colorize(id, 'magenta')}] : ${quiz.question } `);
+});
+
     rl.prompt();
 };
 exports.quitCmd = rl => {
@@ -43,14 +46,15 @@ exports.showCmd = (rl,id) => {
 
 exports.addCmd = rl => {
 
-    rl.question(colorize('Introduzca una pregunta: ', 'red'), question => {
+    rl.question(colorize(' Introduzca una pregunta: ', 'red'), question =>{
 
-        rl.question(colorize(' Introduzca la respuesta ','red'), answer => {
-           model.add(question, answer);
-           log(` ${colorize('se ha añadido', 'magenta')}: ${question} ${colorize('=>','magenta')} ${answer}`);
-            rl.prompt();
-         });
-    });
+        rl.question(colorize(' Introduzca la respuesta: ', 'red'), answer =>{
+
+        model.add(question,answer);
+    log(`${colorize('Se ha añadido', 'magenta')}: ${question} ${colorize('=>','magenta' )} ${answer}`);
+    rl.prompt();
+});
+});
 };
 exports.deleteCmd = (rl,id) => {
     if (typeof id === "undefined"){
@@ -125,7 +129,12 @@ exports.playCmd = rl => {
 
     let score = 0;
     let toBeResolved = [];
-    toBeResolved = model.getAll();
+    const quizzes = model.getAll();
+    //log(quizzes);
+    for (var i = 0; i < quizzes.length; i++){
+        toBeResolve.push(quizzes[i]);
+        //log(toBeResolve);
+    }
 
 
     const playOne = () =>{
